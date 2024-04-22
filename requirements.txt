@@ -7,3 +7,4 @@ fuzzywuzzy
 numpy
 paddlepaddle
 opencv-python
+pytesseract==0.3.10
