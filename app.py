@@ -61,7 +61,7 @@ st.set_page_config(page_icon="🤖", layout="wide", initial_sidebar_state="expan
 #     </style>
 # """, unsafe_allow_html=True)
 
-Display the application title in a creative format
+# Display the application title in a creative format
 st.markdown("""
 #  🤖 **AI-Powered Document Info Extractor**
 """)
