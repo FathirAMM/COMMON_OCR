@@ -10,6 +10,57 @@ from fuzzywuzzy import fuzz
 # Setup the page
 st.set_page_config(page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
+st.markdown("""
+    <style>
+    /* Main background style */
+    body {
+        background-color: #000; /* Black background */
+    }
+    /* Main font style */
+    html, body, [class*="css"] {
+        font-family: 'Arial', sans-serif;
+        color: #ffdd00; /* Yellow text for general readability */
+    }
+    /* Header styles */
+    h1, h2 {
+        color: #ffdd00; /* Yellow for headers */
+    }
+    /* Button styles */
+    .stButton>button {
+        color: #000; /* Black text on buttons */
+        background-color: #ffdd00; /* Yellow background for buttons */
+        border-radius: 5px;
+        padding: 8px 16px; /* Comfortable padding */
+        font-size: 16px; /* Readable font size */
+    }
+    /* Background color for tabs and uploader */
+    .stTabs, .stFileUploader {
+        background-color: #333; /* Dark grey for slight contrast */
+    }
+    /* Customizing the tab labels */
+    .stTab>button {
+        font-size: 16px;
+        color: #ffdd00; /* Yellow text for tabs */
+        font-weight: bold; /* Bold font for tabs */
+    }
+    /* Form label visibility */
+    .stForm label {
+        color: #ffdd00; /* Yellow for form labels */
+        font-weight: bold; /* Bold for better visibility */
+    }
+    /* Adjusting input field visibility */
+    .stTextInput>div>div>input, .stSelectbox>div>select {
+        color: #000; /* Black text for maximum contrast */
+        background-color: #ffdd00; /* Yellow background for input fields */
+        border: 1px solid #ffdd00; /* Yellow border for distinction */
+    }
+    /* Enhance select box visibility */
+    .stSelectbox>div>select {
+        font-size: 16px; /* Larger font for easier selection visibility */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 
 st.markdown("""
     <h1 style='text-align: center; color:  #FFFF00;'>🤖 <strong>AI-Powered Document Information Extractor</strong></h1>
