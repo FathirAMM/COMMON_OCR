@@ -61,12 +61,22 @@ st.set_page_config(page_icon="🤖", layout="wide", initial_sidebar_state="expan
 #     </style>
 # """, unsafe_allow_html=True)
 
-
+Display the application title in a creative format
 st.markdown("""
-    <h1 style='text-align: center; color:  #FFFF00;'>🤖 <strong>AI-Powered Document Information Extractor</strong></h1>
-""", unsafe_allow_html=True)
+#  🤖 **AI-Powered Document Info Extractor**
+""")
 
-st.write("<p style='text-align: center; color: #FFFF00;'>🔍 One-stop solution for extracting information from various documents efficiently. Navigate through the tabs to start processing your documents !</p>", unsafe_allow_html=True)
+# st.markdown("""
+#     <h1 style='text-align: center; color:  #FFFF00;'>🤖 <strong>AI-Powered Document Information Extractor</strong></h1>
+# """, unsafe_allow_html=True)
+
+#st.write("<p style='text-align: center; color: #FFFF00;'>🔍 One-stop solution for extracting information from various documents efficiently. Navigate through the tabs to start processing your documents !</p>", unsafe_allow_html=True)
+
+st.write(" 🔍 One-stop solution for extracting information from various documents efficiently. Navigate through the tabs to start processing your documents !")
+
+
+
+
 
 # Initialize OCR
 ocr = PaddleOCR(lang='en', use_gpu=False)
