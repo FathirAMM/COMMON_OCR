@@ -5,98 +5,67 @@ from passporteye import read_mrz
 from paddleocr import PaddleOCR
 import re
 from fuzzywuzzy import fuzz
-
+import pandas as pd
 
 # Setup the page
 st.set_page_config(page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
-# st.markdown("""
-#     <style>
-#     /* Main background style */
-#     body {
-#         background-color: #000; /* Black background */
-#     }
-#     /* Main font style */
-#     html, body, [class*="css"] {
-#         font-family: 'Arial', sans-serif;
-#         color: #ffdd00; /* Yellow text for general readability */
-#     }
-#     /* Header styles */
-#     h1, h2 {
-#         color: #ffdd00; /* Yellow for headers */
-#     }
-#     /* Button styles */
-#     .stButton>button {
-#         color: #000; /* Black text on buttons */
-#         background-color: #ffdd00; /* Yellow background for buttons */
-#         border-radius: 5px;
-#         padding: 8px 16px; /* Comfortable padding */
-#         font-size: 16px; /* Readable font size */
-#     }
-#     /* Background color for tabs and uploader */
-#     .stTabs, .stFileUploader {
-#         background-color: #333; /* Dark grey for slight contrast */
-#     }
-#     /* Customizing the tab labels */
-#     .stTab>button {
-#         font-size: 16px;
-#         color: #ffdd00; /* Yellow text for tabs */
-#         font-weight: bold; /* Bold font for tabs */
-#     }
-#     /* Form label visibility */
-#     .stForm label {
-#         color: #ffdd00; /* Yellow for form labels */
-#         font-weight: bold; /* Bold for better visibility */
-#     }
-#     /* Adjusting input field visibility */
-#     .stTextInput>div>div>input, .stSelectbox>div>select {
-#         color: #000; /* Black text for maximum contrast */
-#         background-color: #ffdd00; /* Yellow background for input fields */
-#         border: 1px solid #ffdd00; /* Yellow border for distinction */
-#     }
-#     /* Enhance select box visibility */
-#     .stSelectbox>div>select {
-#         font-size: 16px; /* Larger font for easier selection visibility */
-#     }
-#     </style>
-# """, unsafe_allow_html=True)
+# Load the countries data from CSV to create a mapping of ISO codes to country names
+country_df = pd.read_csv('countries.csv')
+country_dict = dict(zip(country_df['ISO Code'], country_df['Country']))
 
 # Display the application title in a creative format
 st.markdown("""
 #  🤖 **AI-Powered Document Info Extractor**
 """)
 
-# st.markdown("""
-#     <h1 style='text-align: center; color:  #FFFF00;'>🤖 <strong>AI-Powered Document Information Extractor</strong></h1>
-# """, unsafe_allow_html=True)
-
-#st.write("<p style='text-align: center; color: #FFFF00;'>🔍 One-stop solution for extracting information from various documents efficiently. Navigate through the tabs to start processing your documents !</p>", unsafe_allow_html=True)
-
 st.write(" 🔍 One-stop solution for extracting information from various documents efficiently. Navigate through the tabs to start processing your documents !")
-
-
-
-
 
 # Initialize OCR
 ocr = PaddleOCR(lang='en', use_gpu=False)
 
-# Functions for extracting MRZ and OCR data for passports and licenses
+# Function to extract MRZ data from the uploaded image using PassportEye
 def extract_mrz_data(image):
     mrz = read_mrz(image, save_roi=True)
     if mrz is None:
         return {}
     mrz_data = mrz.to_dict()
-    # Rename keys for clarity
-    mrz_data['nic_number'] = mrz_data.pop('personal_number', '')
-    mrz_data['passport_number'] = mrz_data.pop('number', '')
+    # Rename keys and clean up data for clarity
+    mrz_data['nic_number'] = mrz_data.pop('personal_number', '').replace('<', '')
+    mrz_data['passport_number'] = mrz_data.pop('number', '').replace('<', '')
     mrz_data['mrz_code'] = mrz_data.pop('raw_text', '')
+    mrz_data['sex'] = 'Female' if mrz_data.get('sex', '') == 'F' else 'Male'
+    mrz_data['country_code'] = mrz_data.pop('nationality', '').replace('<', '')
+    mrz_data['country'] = country_dict.get(mrz_data['country_code'], '')  # Get country name from country code
+
+    # Format the expiration date and calculate issue date
+    expiration = mrz_data.get('expiration_date', '')
+    if len(expiration) == 6:
+        year, month, day = expiration[:2], expiration[2:4], expiration[4:]
+        mrz_data['expiration_date'] = f"20{year}-{month}-{day}"
+        issue_year = str(int("20" + year) - 10)
+        mrz_data['issue_date'] = f"{issue_year}-{month}-{day}"
+    else:
+        mrz_data['issue_date'] = ''
+
+    # Format the date_of_birth and determine year prefix
+    dob = mrz_data.get('date_of_birth', '')
+    if len(dob) == 6:
+        year, month, day = dob[:2], dob[2:4], dob[4:]
+        year_prefix = "19" if "V" in mrz_data['nic_number'] else "20"
+        mrz_data['date_of_birth'] = f"{year_prefix}{year}-{month}-{day}"
+    else:
+        mrz_data['date_of_birth'] = ''
+
     return mrz_data
 
+# Function to extract text from image using PaddleOCR
 def extract_text_from_image(image):
     image_array = np.array(image)
     result = ocr.ocr(image_array, rec=True)
     return " ".join([line[1][0] for line in result[0]])
+
+
 
 def process_ocr_results(ocr_results):
     extracted_info = {
@@ -253,18 +222,37 @@ with tab2:
                     mrz_data = extract_mrz_data(uploaded_image)
                     extracted_text = extract_text_from_image(image)
                     if "passport" in extracted_text.lower():
-                        st.warning("🔍 Passport found! 🎉")
+                        st.success("🔍 Passport found! 🎉")
                     for label, value in mrz_data.items():
                         st.session_state[label] = value
 
     with col2:
+        # st.write("Extracted Passport Details")
+        # form = st.form(key='passport_details_form')
+        # labels = ["names", "surname", "nationality", "nic_number", "passport_number", "date_of_birth", "expiration_date", "sex", "type", "mrz_code"]
+        # for label in labels:
+        #     default_value = st.session_state.get(label, '')
+        #     form.text_input(label.capitalize(), default_value)
+        # form.form_submit_button('Submit')
+
         st.write("Extracted Passport Details")
         form = st.form(key='passport_details_form')
-        labels = ["names", "surname", "nationality", "nic_number", "passport_number", "date_of_birth", "expiration_date", "sex", "type", "mrz_code"]
+        labels = ["names", "surname", "country_code", "country", "nic_number", "passport_number", "date_of_birth", "expiration_date", "issue_date", "sex", "type", "mrz_code"]
+
         for label in labels:
             default_value = st.session_state.get(label, '')
-            form.text_input(label.capitalize(), default_value)
+            # Customize display names where needed
+            display_label = {
+                "country_code": "Country Code",
+                "country": "Country",  # New field for full country name
+                "issue_date": "Issue Date"  # New field for issue date
+            }.get(label, label.capitalize())
+            st.session_state[label] = form.text_input(display_label, default_value)
+
         form.form_submit_button('Submit')
+
+
+
 
 with tab3:
     st.title("🚗 Vehicle CR Book Information Extractor ")
@@ -293,4 +281,3 @@ with tab3:
             default_value = st.session_state.get(label, '')
             form.text_input(label, default_value)
         form.form_submit_button('Submit')
-
