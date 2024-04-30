@@ -118,6 +118,7 @@ def load_and_process_image(image_file):
         for line in page:
             text = line[1][0]
             ocr_texts.append(text)
+    print(ocr_text)
 
     return image, process_ocr_results(result), ocr_texts
 
