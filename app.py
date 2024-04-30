@@ -111,7 +111,7 @@ def process_ocr_results(ocr_results):
 
 
 
-            elif re.search(r"^(1,2\.|\.2|1\.2\.|1,2,|1\.2,|,2).+$", text):
+            elif re.search(r"^(1,2\.|\.2|1\.2\.|12\.|1,2,|1\.2,|,2).+$", text):
                 match = re.sub(r'\d+', '', text)    # Remove numbers from the text
                 match = re.sub(r'[,.]', '', match)  # Remove commas and periods from the text
                 extracted_info["Name"] = match
