@@ -106,8 +106,18 @@ def process_ocr_results(ocr_results):
 
 
 
-            elif re.search(r'\.2\s+(.*)', text):
-                extracted_info["Name"] = text
+            #elif re.search(r'\.2\s+(.*)', text):
+            #    extracted_info["Name"] = text
+
+
+
+            elif re.search(r"^(1,2\.|\.2|1\.2\.|1,2,|1\.2,|,2).+$", text):
+                match = re.sub(r'\d+', '', text)    # Remove numbers from the text
+                match = re.sub(r'[,.]', '', match)  # Remove commas and periods from the text
+                extracted_info["Name"] = match
+
+
+            
             elif re.search(r'^8\.', text):
                 extracted_info["Address"].append(text.split('.', 1)[1].strip())
             elif re.search(r'^(3|5)\.\d{2}\.\d{2}\.\d{4}', text):
