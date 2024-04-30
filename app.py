@@ -100,11 +100,27 @@ def process_ocr_results(ocr_results):
                 extracted_info["Blood Group"] = text.split(None, 2)[-1]
     return extracted_info
 
+# def load_and_process_image(image_file):
+#     image = Image.open(image_file).convert('RGB')
+#     image_np = np.array(image)
+#     result = ocr.ocr(image_np, rec=True)
+#     return image, process_ocr_results(result)
+
+
 def load_and_process_image(image_file):
     image = Image.open(image_file).convert('RGB')
     image_np = np.array(image)
     result = ocr.ocr(image_np, rec=True)
-    return image, process_ocr_results(result)
+
+    # Collect all OCR text for display
+    ocr_texts = []
+    for page in result:
+        for line in page:
+            text = line[1][0]
+            ocr_texts.append(text)
+
+    return image, process_ocr_results(result), ocr_texts
+
 
 # Function to extract vehicle details using OCR
 def extract_key_value(ocr_results, key_name, line_param, value_index, fuzz_score_threshold=80, threshold=10):
@@ -182,24 +198,29 @@ def extract_details_from_image(image):
 tab1, tab2, tab3 = st.tabs(["🪪 Driving License Information Extractor", "🛂 Passport Information Extractor", "🚗 Vehicle CR Book Information Extractor"])
 
 with tab1:
-    st.title('🪪 Driving License Information Extractor ')
+    st.title('🪪 Driving License Information Extractor')
 
     col1, col2 = st.columns([2, 3])
     with col1:
         st.write("Upload an image of a driving license:")
         uploaded_image = st.file_uploader("Choose an image file", type=["jpg", "jpeg", "png"], key='license_uploader')
         if uploaded_image is not None:
-            image, extracted_info = load_and_process_image(uploaded_image)
+            image, extracted_info, ocr_texts = load_and_process_image(uploaded_image)
             st.image(image, caption='Uploaded Image', use_column_width=True)
             if st.button('Process Image', key='process_license_image'):
                 st.session_state["extracted_info"] = extracted_info
-
+                st.session_state["ocr_texts"] = ocr_texts  # Store OCR texts in session state
+                if ocr_texts:
+                    with st.expander("View OCR Extracted Texts"):
+                        for text in ocr_texts:
+                            st.text(text)  # Display each line separately
 
     with col2:
         st.write("Extracted Details")
         form = st.form(key='license_details_form')
         labels = [
-            "Driving Licence No", "National Identification Card No", "Name", "Address", "Data Of Birth", "Date Of Issue", "Date Of Expiry", "Blood Group"
+            "Driving Licence No", "National Identification Card No", "Name", "Address", 
+            "Data Of Birth", "Date Of Issue", "Date Of Expiry", "Blood Group"
         ]
         for label in labels:
             default_value = st.session_state.get("extracted_info", {}).get(label, '')
@@ -227,14 +248,6 @@ with tab2:
                         st.session_state[label] = value
 
     with col2:
-        # st.write("Extracted Passport Details")
-        # form = st.form(key='passport_details_form')
-        # labels = ["names", "surname", "nationality", "nic_number", "passport_number", "date_of_birth", "expiration_date", "sex", "type", "mrz_code"]
-        # for label in labels:
-        #     default_value = st.session_state.get(label, '')
-        #     form.text_input(label.capitalize(), default_value)
-        # form.form_submit_button('Submit')
-
         st.write("Extracted Passport Details")
         form = st.form(key='passport_details_form')
         labels = ["names", "surname", "country_code", "country", "nic_number", "passport_number", "date_of_birth", "expiration_date", "issue_date", "sex", "type", "mrz_code"]
@@ -250,8 +263,6 @@ with tab2:
             st.session_state[label] = form.text_input(display_label, default_value)
 
         form.form_submit_button('Submit')
-
-
 
 
 with tab3:
