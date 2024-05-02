@@ -85,6 +85,12 @@ def process_ocr_results(ocr_results):
             if re.search(r'^5\.(B|8)\d+', text):
                 match = re.sub(r'^5\.', '', text)
                 extracted_info["Driving Licence No"] = "B" + match[1:]
+            
+            #
+            elif extracted_info["Driving Licence No"] == "":
+                extracted_info["Driving Licence No"] = "N/A"
+            #
+
 
             elif re.search(r'\d{9,}', text):
                 match = re.search(r'\d{9,}[A-Za-z]*', text)
@@ -152,7 +158,7 @@ def process_ocr_results(ocr_results):
                 merge = f"{match} {temp}".strip() if temp else match.strip()
                 # Extract the blood group information
                 extracted_info["Blood Group"] = merge.split(None, 2)[-1]
-                
+
         return extracted_info
 
 
