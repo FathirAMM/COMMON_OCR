@@ -83,16 +83,9 @@ def process_ocr_results(ocr_results):
         for i, line in enumerate(page):
             text = line[1][0]
             if re.search(r'^5\.(B|8)\d+', text):
-                print("✅✅✅✅✅")
                 match = re.sub(r'^5\.', '', text)
                 extracted_info["Driving Licence No"] = "B" + match[1:]
             
-            #
-            elif extracted_info["Driving Licence No"] == "":
-                print("Driving Licence No not found")
-                extracted_info["Driving Licence No"] = "N/A"
-            #
-
 
             elif re.search(r'\d{9,}', text):
                 match = re.search(r'\d{9,}[A-Za-z]*', text)
