@@ -72,7 +72,7 @@ def process_ocr_results(ocr_results):
         "Driving Licence No": None,
         "National Identification Card No": None,
         "Name": None,
-        "Address": [],
+        "Address": None,
         "Data Of Birth": None,
         "Date Of Issue": None,
         "Date Of Expiry": None,
@@ -82,22 +82,12 @@ def process_ocr_results(ocr_results):
     for page in ocr_results:
         for line in page:
             text = line[1][0]
-            #if re.search(r'^5\.B\d+', text):
-            #    extracted_info["Driving Licence No"] = re.sub(r'^5\.', '', text)
 
             if re.search(r'^5\.(B|8)\d+', text):
                 match = re.sub(r'^5\.', '', text) 
-                #print(match)
                 extracted_info["Driving Licence No"] = "B" + match[1:]
-
-
-
-            #elif re.search(r'^\d{11}$', text):
-            #    extracted_info["National Identification Card No"] = text
-
-            
+          
             elif re.search(r'\d{9,}', text): 
-                #print(text)
                 match = re.search(r'\d{9,}[A-Za-z]*', text)
                 if match:
                     extracted_info["National Identification Card No"] =  match.group()
@@ -105,21 +95,14 @@ def process_ocr_results(ocr_results):
                     extracted_info["National Identification Card No"] = text           
 
 
-
-            #elif re.search(r'\.2\s+(.*)', text):
-            #    extracted_info["Name"] = text
-
-
-
             elif re.search(r"^(1,2\.|\.2|1\.2\.|12\.|1,2,|1\.2,|,2).+$", text):
                 match = re.sub(r'\d+', '', text)    # Remove numbers from the text
                 match = re.sub(r'[,.]', '', match)  # Remove commas and periods from the text
                 extracted_info["Name"] = match
 
-
-            
             elif re.search(r'^8\.', text):
-                extracted_info["Address"].append(text.split('.', 1)[1].strip())
+                extracted_info["Address"] = text
+
             elif re.search(r'^(3|5)\.\d{2}\.\d{2}\.\d{4}', text):
                 extracted_info["Data Of Birth"] = text.split('.', 1)[1].strip()
             elif re.search(r'^4(a|s)\.\d{2}\.\d{2}\.\d{4}', text):
@@ -129,12 +112,6 @@ def process_ocr_results(ocr_results):
             elif re.search(r'^Blood Group', text, re.IGNORECASE):
                 extracted_info["Blood Group"] = text.split(None, 2)[-1]
     return extracted_info
-
-# def load_and_process_image(image_file):
-#     image = Image.open(image_file).convert('RGB')
-#     image_np = np.array(image)
-#     result = ocr.ocr(image_np, rec=True)
-#     return image, process_ocr_results(result)
 
 
 def load_and_process_image(image_file):
