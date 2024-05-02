@@ -100,7 +100,7 @@ def process_ocr_results(ocr_results):
                 match = re.sub(r'[,.]', '', match)  # Remove commas and periods from the text
                 extracted_info["Name"] = match
 
-            elif re.search(r'^8\.', text):
+            elif re.search(r'^(8|B)\.', text):
                 extracted_info["Address"] = text
 
             elif re.search(r'^(3|5)\.\d{2}\.\d{2}\.\d{4}', text):
