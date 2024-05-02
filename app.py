@@ -88,6 +88,7 @@ def process_ocr_results(ocr_results):
             
             #
             elif extracted_info["Driving Licence No"] == "":
+                print("Driving Licence No not found")
                 extracted_info["Driving Licence No"] = "N/A"
             #
 
