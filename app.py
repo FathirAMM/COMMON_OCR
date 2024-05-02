@@ -87,7 +87,7 @@ def process_ocr_results(ocr_results):
                 extracted_info["Driving Licence No"] = "B" + match[1:]
             
             elif re.search(r'^B\d{7}', text):
-                ["Driving Licence No"] = text
+                extracted_info["Driving Licence No"] = text
             
 
             elif re.search(r'\d{9,}', text):
