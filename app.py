@@ -93,10 +93,22 @@ def process_ocr_results(ocr_results):
                 else:
                     extracted_info["National Identification Card No"] = text
 
+
             elif re.search(r"^(1,2\.|\.2|1\.2\.|12\.|1,2,|1\.2,|,2).+$", text):
-                match = re.sub(r'\d+', '', text)    # Remove numbers from the text
+                match = re.sub(r'\d+', '', text)  # Remove numbers from the text
                 match = re.sub(r'[,.]', '', match)  # Remove commas and periods from the text
-                extracted_info["Name"] = match
+                # Check if there's another line to process
+                if i + 1 < len(page):
+                    temp = page[i + 1][1][0]
+                    if temp == "SL":
+                        temp = ""
+                    if re.search(r'^(8|B)\.', temp):
+                        temp = ""
+                else:
+                    temp = ""  # No further line to process
+                merge_name = f"{match} {temp}".strip()  # Merge and strip any extra spaces
+                extracted_info["Name"] = merge_name
+                
 
             elif re.search(r'^(8|B)\.', text):
                 match = text[2:]  # Remove prefix and capture the rest of the text
