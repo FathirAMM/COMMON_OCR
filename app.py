@@ -66,12 +66,12 @@ def extract_text_from_image(image):
     return " ".join([line[1][0] for line in result[0]])
 
 
-
 def process_ocr_results(ocr_results):
     extracted_info = {
         "Driving Licence No": None,
         "National Identification Card No": None,
         "Name": None,
+        #"Address": [],
         "Address": None,
         "Data Of Birth": None,
         "Date Of Issue": None,
@@ -80,40 +80,51 @@ def process_ocr_results(ocr_results):
     }
 
     for page in ocr_results:
-        for line in page:
+        for i, line in enumerate(page):
             text = line[1][0]
-
             if re.search(r'^5\.(B|8)\d+', text):
-                match = re.sub(r'^5\.', '', text) 
+                match = re.sub(r'^5\.', '', text)
                 extracted_info["Driving Licence No"] = "B" + match[1:]
-          
-            elif re.search(r'\d{9,}', text): 
+
+            elif re.search(r'\d{9,}', text):
                 match = re.search(r'\d{9,}[A-Za-z]*', text)
                 if match:
-                    extracted_info["National Identification Card No"] =  match.group()
+                    extracted_info["National Identification Card No"] = match.group()
                 else:
-                    extracted_info["National Identification Card No"] = text           
-
+                    extracted_info["National Identification Card No"] = text
 
             elif re.search(r"^(1,2\.|\.2|1\.2\.|12\.|1,2,|1\.2,|,2).+$", text):
                 match = re.sub(r'\d+', '', text)    # Remove numbers from the text
                 match = re.sub(r'[,.]', '', match)  # Remove commas and periods from the text
                 extracted_info["Name"] = match
 
-            elif re.search(r'^(8|B)\.', text): 
-                #  Check if the text starts with '8.' 
-                match = text[2:]
-                extracted_info["Address"] =match
+            elif re.search(r'^(8|B)\.', text):
+                match = text[2:]  # Remove prefix and capture the rest of the text
+                temp_list = [page[j][1][0] for j in range(i+1, min(i+3, len(page)))] if i + 2 < len(page) else [page[j][1][0] for j in range(i+1, len(page))] if i + 1 < len(page) else []
+
+                # Remove 'SL' from temp_list
+                temp_list = [line for line in temp_list if 'SL' not in line]
+
+                # Remove any strings that match the date pattern
+                temp_list = [line for line in temp_list if not re.match(r'^(3|5)\.\d{2}\.\d{2}\.\d{4}', line)]
+
+                # Merge 'match' with the remaining values in temp_list
+                merge = ' '.join([match] + temp_list)
+
+                extracted_info["Address"] = merge
 
             elif re.search(r'^(3|5)\.\d{2}\.\d{2}\.\d{4}', text):
                 extracted_info["Data Of Birth"] = text.split('.', 1)[1].strip()
+
             elif re.search(r'^4(a|s)\.\d{2}\.\d{2}\.\d{4}', text):
                 extracted_info["Date Of Issue"] = text.split('.', 1)[1].strip()
+
             elif re.search(r'^4(b|6)\.\d{2}\.\d{2}\.\d{4}', text):
-                extracted_info["Date Of Expiry"] = text.split('.', 1)[1].strip()
-            elif re.search(r'^Blood Group', text, re.IGNORECASE):
+                extracted_info["Date Of Expiry"] = text.split('.', 1)[1]. strip()
+
+            elif re.search(r'^Blood', text, re.IGNORECASE):
                 extracted_info["Blood Group"] = text.split(None, 2)[-1]
-    return extracted_info
+        return extracted_info
 
 
 def load_and_process_image(image_file):
