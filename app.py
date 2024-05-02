@@ -134,8 +134,25 @@ def process_ocr_results(ocr_results):
             elif re.search(r'^4(b|6)\.\d{2}\.\d{2}\.\d{4}', text):
                 extracted_info["Date Of Expiry"] = text.split('.', 1)[1]. strip()
 
+            #elif re.search(r'^Blood', text, re.IGNORECASE):
+            #    extracted_info["Blood Group"] = text.split(None, 2)[-1]
+
             elif re.search(r'^Blood', text, re.IGNORECASE):
-                extracted_info["Blood Group"] = text.split(None, 2)[-1]
+                match = text  # Current line
+                # Check if there's another line to process
+                if i + 1 < len(page):
+                    temp = page[i + 1][1][0]
+                    # Check if the next line contains '+'
+                    if '+' not in temp:
+                        temp = ""
+                else:
+                    temp = ""  # No further line to process
+
+                # Merge 'match' with 'temp' if 'temp' is not empty
+                merge = f"{match} {temp}".strip() if temp else match.strip()
+                # Extract the blood group information
+                extracted_info["Blood Group"] = merge.split(None, 2)[-1]
+                
         return extracted_info
 
 
