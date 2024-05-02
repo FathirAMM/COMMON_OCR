@@ -83,6 +83,7 @@ def process_ocr_results(ocr_results):
         for i, line in enumerate(page):
             text = line[1][0]
             if re.search(r'^5\.(B|8)\d+', text):
+                print("✅✅✅✅✅")
                 match = re.sub(r'^5\.', '', text)
                 extracted_info["Driving Licence No"] = "B" + match[1:]
             
